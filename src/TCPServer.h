@@ -14,10 +14,10 @@ public:
     ~TCPServer();
 
     bool Start();
-    int AcceptClient() const;
-    ssize_t Receive(int client_socket, char* buffer, size_t buffer_size);
-    ssize_t SendResponse(int client_socket, const std::string& response);
-    void CloseSocket(int socket);
+    [[nodiscard]] int AcceptClient() const;
+    static ssize_t Receive(int client_socket, char* buffer, size_t buffer_size);
+    static ssize_t SendResponse(int client_socket, const std::string& response);
+    static void CloseSocket(int socket);
 
 private:
     int server_fd; // Server socket file descriptor

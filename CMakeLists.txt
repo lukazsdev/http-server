@@ -7,4 +7,6 @@ add_executable(http_server main.cpp
         src/TCPServer.cpp
         src/TCPServer.h
         src/HTTPServer.cpp
-        src/HTTPServer.h)
+        src/HTTPServer.h
+        src/ThreadPool.cpp
+        src/ThreadPool.h)

@@ -20,7 +20,7 @@ bool TCPServer::Start() {
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(port);
 
-    if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+    if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&server_addr), sizeof(server_addr)) < 0) {
         perror("Bind failed");
         return false;
     }
@@ -37,7 +37,7 @@ bool TCPServer::Start() {
 int TCPServer::AcceptClient() const {
     struct sockaddr_in client_addr{};
     socklen_t client_len = sizeof(client_addr);
-    int client_socket = accept(server_fd, (struct sockaddr*)&client_addr, &client_len);
+    int client_socket = accept(server_fd, reinterpret_cast<struct sockaddr *>(&client_addr), &client_len);
 
     if (client_socket < 0) {
         perror("Accept failed");
@@ -46,15 +46,15 @@ int TCPServer::AcceptClient() const {
     return client_socket;
 }
 
-ssize_t TCPServer::Receive(int client_socket, char *buffer, size_t buffer_size) {
+ssize_t TCPServer::Receive(const int client_socket, char *buffer, const size_t buffer_size) {
     return read(client_socket, buffer, buffer_size);
 }
 
-ssize_t TCPServer::SendResponse(int client_socket, const std::string &response) {
+ssize_t TCPServer::SendResponse(const int client_socket, const std::string &response) {
     return write(client_socket, response.c_str(), response.length());
 }
 
-void TCPServer::CloseSocket(int socket) {
+void TCPServer::CloseSocket(const int socket) {
     close(socket);
 }
 

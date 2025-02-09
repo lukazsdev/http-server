@@ -1,15 +1,28 @@
 #include "HTTPServer.h"
 
-HTTPServer::HTTPServer(int port) : tcp_server(port) {}
+HTTPServer::HTTPServer(const int port, const size_t num_threads) : tcp_server(port), thread_pool(num_threads) {}
 
 std::string HTTPServer::HandleRequest(const std::string &request) {
-    // Very basic request handling (just returns Hello, World!)
     return "HTTP/1.1 200 OK\r\n"
            "Content-Type: text/html\r\n"
            "Content-Length: 13\r\n"
            "\r\n"
            "Hello, World!";
 }
+
+void HTTPServer::ProcessClient(const int client_socket) {
+    char buffer[1024] = {0};
+    auto bytes_received = tcp_server.Receive(client_socket, buffer, sizeof(buffer));
+
+    if (bytes_received > 0) {
+        const std::string request(buffer);
+        const std::string response = HandleRequest(request);
+        tcp_server.SendResponse(client_socket, response);
+    }
+
+    tcp_server.CloseSocket(client_socket);
+}
+
 
 void HTTPServer::run() {
     if (!tcp_server.Start()) return;
@@ -18,16 +31,9 @@ void HTTPServer::run() {
         int client_socket = tcp_server.AcceptClient();
         if (client_socket < 0) continue;
 
-        char buffer[1024] = {0};
-        ssize_t bytes_received = tcp_server.Receive(client_socket, buffer, sizeof(buffer));
-
-        if (bytes_received > 0) {
-            std::string request(buffer);
-            std::string response = HandleRequest(request);
-            tcp_server.SendResponse(client_socket, response);
-        }
-
-        tcp_server.CloseSocket(client_socket);
+        thread_pool.EnqueueTask([this, client_socket]() {
+            ProcessClient(client_socket);
+        });
     }
 }
 
